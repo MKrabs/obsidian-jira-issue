@@ -149,26 +149,34 @@ function ensureCleanupInterval(): void {
     }, DISCONNECTED_ELEMENTS_SWEEP_MS)
 }
 
-export function refreshOverflowElement(element: HTMLElement): void {
+interface PendingOverflowAnimation {
+    element: HTMLElement
+    text: HTMLElement
+    metrics: OverflowAnimationMetrics
+}
+
+// Read-only phase: must run after stopOverflowAnimation() so the text is back in its
+// resting display:inline layout. Does not write to the DOM, so measuring many elements
+// in a row costs a single layout pass.
+function measureOverflowElement(element: HTMLElement): PendingOverflowAnimation | null {
     const viewport = element.querySelector<HTMLElement>('.ji-overflow-viewport')
     const text = element.querySelector<HTMLElement>('.ji-overflow-text')
-    if (!viewport || !text) {
-        return
+    if (!viewport || !text || !SettingsData.animateOverflowingText) {
+        return null
     }
+    // Measure the viewport, not the text: the text is display:inline while not animating
+    // (so the viewport's text-overflow ellipsis applies), and inline elements report scrollWidth 0.
+    const metrics = calculateOverflowAnimation(viewport.scrollWidth, viewport.clientWidth)
+    if (!metrics || prefersReducedMotion(element) || typeof text.animate !== 'function') {
+        return null
+    }
+    return { element, text, metrics }
+}
 
-    stopOverflowAnimation(element)
-    if (!SettingsData.animateOverflowingText) {
-        return
-    }
-    const metrics = calculateOverflowAnimation(text.scrollWidth, viewport.clientWidth)
-    if (!metrics) {
-        return
-    }
-
+function startOverflowAnimation({ element, text, metrics }: PendingOverflowAnimation): void {
+    // Only switch to the animatable inline-block layout when an animation actually runs,
+    // otherwise the text would be clipped without an ellipsis.
     element.classList.add('is-overflowing')
-    if (prefersReducedMotion(element) || typeof text.animate !== 'function') {
-        return
-    }
 
     const translatedPosition = `translateX(-${metrics.distancePx}px)`
     const animation = text.animate([
@@ -183,6 +191,14 @@ export function refreshOverflowElement(element: HTMLElement): void {
         iterations: Infinity,
     })
     runningAnimations.set(element, animation)
+}
+
+export function refreshOverflowElement(element: HTMLElement): void {
+    stopOverflowAnimation(element)
+    const pending = measureOverflowElement(element)
+    if (pending) {
+        startOverflowAnimation(pending)
+    }
 }
 
 export function scheduleOverflowElementRefresh(element: HTMLElement): void {
@@ -208,10 +224,17 @@ export function refreshAllOverflowElements(root: ParentNode = document): void {
         root.querySelectorAll<HTMLElement>(OVERFLOW_TAG_SELECTOR).forEach(stopOverflowElementTracking)
         return
     }
-    root.querySelectorAll<HTMLElement>(OVERFLOW_TAG_SELECTOR).forEach(element => {
+    // Stop all, measure all, then start all: interleaving them per element would force a
+    // synchronous reflow for every tag, since starting an animation changes the text layout.
+    const elements = Array.from(root.querySelectorAll<HTMLElement>(OVERFLOW_TAG_SELECTOR))
+    elements.forEach(element => {
         observeOverflowElement(element)
-        refreshOverflowElement(element)
+        stopOverflowAnimation(element)
     })
+    elements
+        .map(measureOverflowElement)
+        .filter((pending): pending is PendingOverflowAnimation => pending !== null)
+        .forEach(startOverflowAnimation)
 }
 
 export function scheduleAllOverflowElementsRefresh(root: ParentNode = document): void {
