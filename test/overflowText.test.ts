@@ -4,6 +4,7 @@ jest.mock('../src/client/jiraClient')
 import {
     applyOverflowWidths,
     calculateOverflowAnimation,
+    refreshAllOverflowElements,
     refreshOverflowElement,
     scheduleOverflowElementRefresh,
     stopAllOverflowElements,
@@ -116,6 +117,54 @@ describe('OverflowText', () => {
 
         expect(animate).not.toHaveBeenCalled()
         expect(element.classList.add).not.toHaveBeenCalledWith('is-overflowing')
+    })
+
+    test('keeps the ellipsis layout when the Web Animations API is unavailable', () => {
+        const element = {
+            classList: { add: jest.fn(), remove: jest.fn() },
+            ownerDocument: { defaultView: { matchMedia: jest.fn(() => ({ matches: false })) } },
+            querySelector: jest.fn((selector: string) => selector === '.ji-overflow-viewport'
+                ? { clientWidth: 100, scrollWidth: 120 }
+                : {}),
+        } as unknown as HTMLElement
+
+        SettingsData.animateOverflowingText = true
+        applyOverflowWidths(emptyRoot, 20, 2)
+        refreshOverflowElement(element)
+
+        expect(element.classList.add).not.toHaveBeenCalledWith('is-overflowing')
+    })
+
+    test('measures all overflow tags before starting any animation', () => {
+        const events: string[] = []
+        const createElement = (name: string) => {
+            const viewport = {
+                clientWidth: 100,
+                get scrollWidth() {
+                    events.push(`measure ${name}`)
+                    return 120
+                },
+            }
+            const text = { animate: jest.fn(() => ({ cancel: jest.fn() })) }
+            return {
+                classList: {
+                    add: jest.fn(() => events.push(`start ${name}`)),
+                    remove: jest.fn(),
+                },
+                ownerDocument: { defaultView: { matchMedia: jest.fn(() => ({ matches: false })) } },
+                querySelector: jest.fn((selector: string) => selector === '.ji-overflow-viewport' ? viewport : text),
+            } as unknown as HTMLElement
+        }
+        const root = {
+            ownerDocument: null,
+            querySelectorAll: jest.fn(() => [createElement('a'), createElement('b')]),
+        } as unknown as ParentNode
+
+        SettingsData.animateOverflowingText = true
+        applyOverflowWidths(emptyRoot, 20, 2)
+        refreshAllOverflowElements(root)
+
+        expect(events).toEqual(['measure a', 'measure b', 'start a', 'start b'])
     })
 
     test('stops a running animation as soon as the option is disabled', () => {
