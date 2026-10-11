@@ -28,13 +28,13 @@ jobs:
 
       - uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 9
           run_install: false
 
       - name: Build
         id: build
         run: |
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
           pnpm run build
           echo "tag_name=$(git tag --sort version:refname | tail -n 1)" >> $GITHUB_OUTPUT
 

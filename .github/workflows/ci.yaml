@@ -16,12 +16,12 @@ jobs:
           node-version: "20"
       - uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 9
           run_install: false
       - name: Install dependencies
         id: install
         run: |
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
       - name: Build
         id: build
         run: |
@@ -37,12 +37,12 @@ jobs:
           node-version: "20"
       - uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 9
           run_install: false
       - name: Install dependencies
         id: install
         run: |
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
       - name: Test
         id: test
         run: |
@@ -58,13 +58,13 @@ jobs:
           node-version: "20"
       - uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 9
           run_install: false
       - name: Install dependencies
         id: install
         run: |
           cd ./docs-gen
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
       - name: Build
         id: build
         run: |

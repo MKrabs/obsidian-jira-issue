@@ -20,12 +20,12 @@ jobs:
           node-version: "20"
       - uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 9
           run_install: false
       - name: Install dependencies
         run: |
           cd ./docs-gen
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
       - name: Build website
         run: |
           cd ./docs-gen
