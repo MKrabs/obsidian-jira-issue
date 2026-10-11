@@ -160,15 +160,20 @@ export function refreshOverflowElement(element: HTMLElement): void {
     if (!SettingsData.animateOverflowingText) {
         return
     }
-    const metrics = calculateOverflowAnimation(text.scrollWidth, viewport.clientWidth)
+    // Measure the viewport, not the text: the text is display:inline while not animating
+    // (so the viewport's text-overflow ellipsis applies), and inline elements report scrollWidth 0.
+    const metrics = calculateOverflowAnimation(viewport.scrollWidth, viewport.clientWidth)
     if (!metrics) {
         return
     }
 
-    element.classList.add('is-overflowing')
     if (prefersReducedMotion(element) || typeof text.animate !== 'function') {
         return
     }
+
+    // Only switch to the animatable inline-block layout when an animation actually runs,
+    // otherwise the text would be clipped without an ellipsis.
+    element.classList.add('is-overflowing')
 
     const translatedPosition = `translateX(-${metrics.distancePx}px)`
     const animation = text.animate([

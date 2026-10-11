@@ -70,8 +70,8 @@ describe('OverflowText', () => {
             classList: { add: jest.fn(), remove: jest.fn() },
             ownerDocument: { defaultView: { matchMedia: jest.fn(() => ({ matches: false })) } },
             querySelector: jest.fn((selector: string) => selector === '.ji-overflow-viewport'
-                ? { clientWidth: 100 }
-                : { scrollWidth: 120, animate }),
+                ? { clientWidth: 100, scrollWidth: 120 }
+                : { animate }),
         } as unknown as HTMLElement
 
         SettingsData.animateOverflowingText = false
@@ -88,8 +88,8 @@ describe('OverflowText', () => {
             classList: { add: jest.fn(), remove: jest.fn() },
             ownerDocument: { defaultView: { matchMedia: jest.fn(() => ({ matches: false })) } },
             querySelector: jest.fn((selector: string) => selector === '.ji-overflow-viewport'
-                ? { clientWidth: 100 }
-                : { scrollWidth: 120, animate }),
+                ? { clientWidth: 100, scrollWidth: 120 }
+                : { animate }),
         } as unknown as HTMLElement
 
         SettingsData.animateOverflowingText = true
@@ -100,6 +100,24 @@ describe('OverflowText', () => {
         expect(element.classList.add).toHaveBeenCalledWith('is-overflowing')
     })
 
+    test('keeps the ellipsis layout when reduced motion is enabled', () => {
+        const animate = jest.fn()
+        const element = {
+            classList: { add: jest.fn(), remove: jest.fn() },
+            ownerDocument: { defaultView: { matchMedia: jest.fn(() => ({ matches: true })) } },
+            querySelector: jest.fn((selector: string) => selector === '.ji-overflow-viewport'
+                ? { clientWidth: 100, scrollWidth: 120 }
+                : { animate }),
+        } as unknown as HTMLElement
+
+        SettingsData.animateOverflowingText = true
+        applyOverflowWidths(emptyRoot, 20, 2)
+        refreshOverflowElement(element)
+
+        expect(animate).not.toHaveBeenCalled()
+        expect(element.classList.add).not.toHaveBeenCalledWith('is-overflowing')
+    })
+
     test('stops a running animation as soon as the option is disabled', () => {
         const cancel = jest.fn()
         const element = {
@@ -107,8 +125,8 @@ describe('OverflowText', () => {
             classList: { add: jest.fn(), remove: jest.fn() },
             ownerDocument: { defaultView: { matchMedia: jest.fn(() => ({ matches: false })) } },
             querySelector: jest.fn((selector: string) => selector === '.ji-overflow-viewport'
-                ? { clientWidth: 100 }
-                : { scrollWidth: 120, animate: jest.fn(() => ({ cancel })) }),
+                ? { clientWidth: 100, scrollWidth: 120 }
+                : { animate: jest.fn(() => ({ cancel })) }),
         } as unknown as HTMLElement
         const root = {
             ownerDocument: null,
@@ -151,8 +169,8 @@ describe('OverflowText', () => {
             clearInterval: jest.fn(),
         }
         ;(global as any).window = ownerWindow
-        const viewport = { clientWidth: 150 }
-        const text = { scrollWidth: 120 }
+        const viewport = { clientWidth: 150, scrollWidth: 150 }
+        const text = { animate: jest.fn(() => ({ cancel: jest.fn() })) }
         const classList = { add: jest.fn(), remove: jest.fn() }
         const element = {
             classList,
@@ -168,6 +186,7 @@ describe('OverflowText', () => {
         expect(classList.add).not.toHaveBeenCalled()
 
         viewport.clientWidth = 100
+        viewport.scrollWidth = 120
         resizeCallback()
         animationFrames.shift()(0)
         expect(classList.add).toHaveBeenCalledWith('is-overflowing')
@@ -203,8 +222,8 @@ describe('OverflowText', () => {
             clearInterval: jest.fn(),
         }
         ;(global as any).window = ownerWindow
-        const viewport = { clientWidth: 150 }
-        const text = { scrollWidth: 120 }
+        const viewport = { clientWidth: 150, scrollWidth: 150 }
+        const text = {}
         const element = {
             classList: { add: jest.fn(), remove: jest.fn() },
             isConnected: true,

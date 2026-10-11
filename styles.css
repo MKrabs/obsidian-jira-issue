@@ -54,12 +54,15 @@
     white-space: nowrap;
 }
 
+/* inline (not inline-block) so the viewport's text-overflow ellipsis is rendered */
 .jira-issue-container .ji-overflow-text {
-    display: inline-block;
+    display: inline;
     white-space: nowrap;
 }
 
+/* transforms need a non-inline box, so only switch while the scroll animation runs */
 .jira-issue-container .ji-overflow-tag.is-overflowing .ji-overflow-text {
+    display: inline-block;
     will-change: transform;
 }
 
