@@ -10,18 +10,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "20"
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 9
           run_install: false
       - name: Install dependencies
         id: install
         run: |
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
       - name: Build
         id: build
         run: |
@@ -31,18 +31,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "20"
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 9
           run_install: false
       - name: Install dependencies
         id: install
         run: |
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
       - name: Test
         id: test
         run: |
@@ -52,19 +52,19 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "20"
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 9
           run_install: false
       - name: Install dependencies
         id: install
         run: |
           cd ./docs-gen
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
       - name: Build
         id: build
         run: |
