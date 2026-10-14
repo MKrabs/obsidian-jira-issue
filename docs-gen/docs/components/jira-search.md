@@ -136,6 +136,8 @@ The copied text can be changed in the settings with the `Copy column template` o
 
 Example: `- {prefix}{key} {summary}` copies `- JIRA:AAA-123 User story summary`.
 
+The template can span multiple lines, the line breaks are copied as well.
+
 ## Footer
 
 At the bottom of each search table you have several information:

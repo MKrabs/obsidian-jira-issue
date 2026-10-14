@@ -702,13 +702,16 @@ export class JiraIssueSettingTab extends PluginSettingTab {
             .setName('Copy column template')
             .setDesc('Text copied by the COPY_TO_CLIPBOARD search column. Placeholders: '
                 + Object.keys(COPY_TEMPLATE_PLACEHOLDERS).map(p => `{${p}}`).join(', '))
-            .addText(text => text
-                .setPlaceholder(DEFAULT_SETTINGS.copyColumnTemplate)
-                .setValue(SettingsData.copyColumnTemplate)
-                .onChange(async value => {
-                    SettingsData.copyColumnTemplate = value || DEFAULT_SETTINGS.copyColumnTemplate
-                    await this.saveSettings()
-                }))
+            .addTextArea(textArea => {
+                textArea
+                    .setPlaceholder(DEFAULT_SETTINGS.copyColumnTemplate)
+                    .setValue(SettingsData.copyColumnTemplate)
+                    .onChange(async value => {
+                        SettingsData.copyColumnTemplate = value || DEFAULT_SETTINGS.copyColumnTemplate
+                        await this.saveSettings()
+                    })
+                textArea.inputEl.rows = 3
+            })
 
         new Setting(containerEl)
             .setName('Issue summary maximum width')
