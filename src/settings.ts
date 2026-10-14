@@ -7,6 +7,7 @@ import { isSecretStorageAvailable, loadAccountSecrets, saveAccountSecrets, delet
 import { decryptSecret, encryptSecret } from './crypto/encryption'
 import { UnlockModal } from './modals/unlockModal'
 import { refreshInlineIssuesEffect } from './rendering/inlineIssueViewPlugin'
+import { COPY_TEMPLATE_PLACEHOLDERS } from './rendering/renderTableColumns'
 
 export let MasterPassphraseSession: string | null = null
 
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: IJiraIssueSettings = {
     renderStyle: ERenderStyle.MODERN,
     inlineIssueUrlToTag: true,
     inlineIssuePrefix: 'JIRA:',
+    copyColumnTemplate: '{prefix}{key}',
     issueSummaryMaxWidthRem: 20,
     issueStatusMaxWidthRem: 2,
     animateOverflowingText: false,
@@ -694,6 +696,18 @@ export class JiraIssueSettingTab extends PluginSettingTab {
                     SettingsData.inlineIssuePrefix = value
                     inlineIssuePrefixSetting.setDesc(inlineIssuePrefixDesc(SettingsData.inlineIssuePrefix))
                     await this.saveSettings({ isVisualOnly: true })
+                }))
+
+        new Setting(containerEl)
+            .setName('Copy column template')
+            .setDesc('Text copied by the COPY_TO_CLIPBOARD search column. Placeholders: '
+                + Object.keys(COPY_TEMPLATE_PLACEHOLDERS).map(p => `{${p}}`).join(', '))
+            .addText(text => text
+                .setPlaceholder(DEFAULT_SETTINGS.copyColumnTemplate)
+                .setValue(SettingsData.copyColumnTemplate)
+                .onChange(async value => {
+                    SettingsData.copyColumnTemplate = value || DEFAULT_SETTINGS.copyColumnTemplate
+                    await this.saveSettings()
                 }))
 
         new Setting(containerEl)
