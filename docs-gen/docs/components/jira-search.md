@@ -127,7 +127,7 @@ The special column `COPY_TO_CLIPBOARD` adds a copy button to each row. By defaul
 
 ````
 ```jira-search
-query: assignee = currentUser() AND updated >= startOfWeek()
+query: status = 'In Progress' order by priority DESC
 columns: copy_to_clipboard, key, summary, status
 ```
 ````
