@@ -55,7 +55,7 @@ export const COPY_TEMPLATE_PLACEHOLDERS: Record<string, (issue: IJiraIssue) => s
 // Unknown placeholders are left untouched so typos stay visible in the pasted text
 export function formatCopyTemplate(template: string, issue: IJiraIssue): string {
     return template.replace(/\{(\w+)\}/g, (match, name: string) =>
-        name in COPY_TEMPLATE_PLACEHOLDERS ? COPY_TEMPLATE_PLACEHOLDERS[name](issue) ?? '' : match)
+        Object.prototype.hasOwnProperty.call(COPY_TEMPLATE_PLACEHOLDERS, name) ? COPY_TEMPLATE_PLACEHOLDERS[name](issue) ?? '' : match)
 }
 
 export const renderTableColumn = async (columns: ISearchColumn[], issue: IJiraIssue, row: HTMLTableRowElement): Promise<void> => {
@@ -277,13 +277,14 @@ export const renderTableColumn = async (columns: ISearchColumn[], issue: IJiraIs
                     parent: createEl('td', { parent: row }),
                 })
                 setIcon(button, 'copy')
-                button.addEventListener('click', () => {
-                    navigator.clipboard.writeText(formatCopyTemplate(SettingsData.copyColumnTemplate, issue))
-                        .then(() => {
-                            setIcon(button, 'check')
-                            window.setTimeout(() => setIcon(button, 'copy'), 1000)
-                        })
-                        .catch(() => new Notice('Failed to copy to clipboard'))
+                button.onClickEvent(async () => {
+                    try {
+                        await navigator.clipboard.writeText(formatCopyTemplate(SettingsData.copyColumnTemplate, issue))
+                        setIcon(button, 'check')
+                        window.setTimeout(() => setIcon(button, 'copy'), 1000)
+                    } catch {
+                        new Notice('Failed to copy to clipboard')
+                    }
                 })
                 break
             }

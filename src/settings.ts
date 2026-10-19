@@ -708,7 +708,7 @@ export class JiraIssueSettingTab extends PluginSettingTab {
                     .setValue(SettingsData.copyColumnTemplate)
                     .onChange(async value => {
                         SettingsData.copyColumnTemplate = value || DEFAULT_SETTINGS.copyColumnTemplate
-                        await this.saveSettings()
+                        await this.saveSettings({ isVisualOnly: true })
                     })
                 textArea.inputEl.rows = 3
             })

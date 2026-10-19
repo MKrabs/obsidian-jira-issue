@@ -34,6 +34,11 @@ describe('renderTableColumns', () => {
         }
     })
 
+    const originalPrefix = SettingsData.inlineIssuePrefix
+    afterEach(() => {
+        SettingsData.inlineIssuePrefix = originalPrefix
+    })
+
     test('renders EPIC NAME custom field column as a link from issue.fields.parent', async () => {
         const columns: ISearchColumn[] = [
             { type: ESearchColumnsTypes.CUSTOM_FIELD, compact: false, extra: 'EPIC NAME' }
@@ -131,5 +136,11 @@ describe('renderTableColumns', () => {
         expect(formatCopyTemplate('{prefix}{key}', issue)).toEqual('JIRA:TASK-1')
         expect(formatCopyTemplate('- {key} {summary} [{status}] {assignee}{nope}', issue)).toEqual('- TASK-1 Fix login [Done] {nope}')
         expect(formatCopyTemplate('{url}', issue)).toEqual('https://test-company.atlassian.net/browse/TASK-1')
+    })
+
+    test('formatCopyTemplate ignores Object.prototype member names', () => {
+        const issue = { key: 'TASK-1', fields: {}, account: TestAccountOpen } as any
+
+        expect(formatCopyTemplate('{constructor}{__proto__}{toString}', issue)).toEqual('{constructor}{__proto__}{toString}')
     })
 })
